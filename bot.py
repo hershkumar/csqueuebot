@@ -9,11 +9,12 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 client = discord.Client()
 
 prefix = 'q'
-mention_string = "<@&"+str(820745228045910026)+">"
+role_id = 820745228045910026
+mention_string = "<@&"+str(role_id)+">"
 queue_flag = False
 num_games = 0
 players = {}
-
+all_players = []
 
 # displays the message with all the people in for queues
 def disp_queue(game_num):
@@ -47,7 +48,14 @@ def disp_queue(game_num):
 
 @client.event
 async def on_ready():
+	global all_players
 	print(f'{client.user} has connected to Discord!')
+	guild = client.guilds[0]
+	role = guild.get_role(role_id)
+	print(role)
+	all_players = role.members
+	print(all_players)
+	
 
 # when someone sends a message
 @client.event
@@ -75,9 +83,12 @@ async def on_message(message):
 					if num_args == 3:
 						if int(message_list[2]) > 0:
 							num_games = int(message_list[2])
-							await message.channel.send(mention_string + " Summoning for " 
+							if num_games <= 5:
+								await message.channel.send(mention_string + " Summoning for " 
 								+ str(num_games) + " games.")
-							queue_flag = True
+								queue_flag = True
+							else:
+								await message.channel.send("Too many games, please summon a queue for a smaller number of games.")
 					else:
 						await message.channel.send("Please input the number of games.")
 				else:
@@ -86,6 +97,8 @@ async def on_message(message):
 			if message_list[1] == 'cancel':
 				queue_flag = False
 				num_games = 0
+				players = {}
+
 				await message.channel.send("Queue has been cancelled.")
 				return
 			#person decides to join the queue
@@ -94,7 +107,7 @@ async def on_message(message):
 					if num_args == 3:
 						if int(message_list[2]) > 0:
 							players[message.author.name] = [int(message_list[2]), time.time()]
-							await message.channel.send("You have been added to the queue for " + message_list[2] + " games.")
+							await message.channel.send("You have been added to the queue for game " + message_list[2] + ".")
 							print(players)
 					else:
 						await message.channel.send("Please input the number of games")
