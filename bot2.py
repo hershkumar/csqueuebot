@@ -14,8 +14,8 @@ intents.members = True
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
 role_id = 820745228045910026
-#mention_string = "<@&"+str(role_id)+">"
-mention_string = ""
+mention_string = "<@&"+str(role_id)+">"
+#mention_string = ""
 game_summoned = False
 # players are stored in a list of lists, top level is game number and second level is player names (sorted by join time)
 games = []
@@ -29,13 +29,13 @@ async def on_ready():
 	await bot.change_presence(activity=discord.Game(name="q summon"))
 
 @bot.command(help="Summons a queue of gamers.")
-async def summon(ctx, num_games_summoned: int = 0, time: str = ""):
+async def summon(ctx, num_games_summoned: int = 1, time: str = ""):
 	global game_summoned
 	global games
 
 	if game_summoned == False:
 		if num_games_summoned != 0:
-			await ctx.send(mention_string + " Summoning for " + str(num_games_summoned) + " game(s).")
+			await ctx.send(mention_string + " Summoning for " + str(num_games_summoned) + " game(s), with the first game at (" + time + ").")
 			game_summoned = True
 			# add that number of games to the games list, all empty
 			games = [[] for i in range(num_games_summoned)]
