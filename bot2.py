@@ -28,8 +28,8 @@ async def on_ready():
 	print('------')
 	await bot.change_presence(activity=discord.Game(name="q summon"))
 
-@bot.command()
-async def summon(ctx, num_games_summoned: int = 0):
+@bot.command(help="Summons a queue of gamers.")
+async def summon(ctx, num_games_summoned: int = 0, time: str = ""):
 	global game_summoned
 	global games
 
@@ -41,13 +41,15 @@ async def summon(ctx, num_games_summoned: int = 0):
 			games = [[] for i in range(num_games_summoned)]
 			
 			await bot.change_presence(activity=discord.Game(name="0/5 slots filled"))
+			# Should auto-join the summoner into the first game
+			await ctx.invoke(bot.get_command('join'), game_num=1)
 		else:
 			await ctx.send("Please give a number of games.")
 	else:
 		await ctx.send("Game is already summoned.")
 
 
-@bot.command()
+@bot.command(help="Adds you to the current queue.")
 async def join(ctx, game_num: int = 0):
 	global games
 	global game_summoned
@@ -78,7 +80,7 @@ async def join(ctx, game_num: int = 0):
 	else:
 		await ctx.send("No currently running queue.")
 
-@bot.command()
+@bot.command(help="Removes you from chosen game.")
 async def leave(ctx, game_num: int = 0):
 	global games
 	global game_summoned
@@ -103,7 +105,7 @@ async def leave(ctx, game_num: int = 0):
 	else:
 		await ctx.send("No currently running queue.")
 
-@bot.command()
+@bot.command(help="Cancels the current queue.")
 async def cancel(ctx):
 	global game_summoned
 	global games
@@ -118,7 +120,7 @@ async def cancel(ctx):
 		await ctx.send("There is no queue running currently.")
 
 # displays all the nonempty games
-@bot.command()
+@bot.command(help="Displays the status of the current queue.")
 async def disp(ctx):
 	global games
 	msg = ""
@@ -141,7 +143,7 @@ async def disp(ctx):
 		await ctx.send(msg)
 
 # removes the first game from the games list (when the game has been played)
-@bot.command()
+@bot.command(help="Removes the first game from the queue.")
 async def played(ctx):
 	global games
 	global game_summoned
@@ -154,4 +156,7 @@ async def played(ctx):
 			await ctx.send("There are no games in queue.")
 	else:
 		await ctx.send("Game is not summoned.")
+
+
+
 bot.run(TOKEN)
