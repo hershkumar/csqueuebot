@@ -1,8 +1,8 @@
 import os
 import discord
 from dotenv import load_dotenv
-import time
-from discord.ext import commands
+import time as t
+from discord.ext import commands, tasks
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -17,6 +17,10 @@ role_id = 820745228045910026
 mention_string = "<@&"+str(role_id)+">"
 #mention_string = ""
 game_summoned = False
+time_summoned = 0
+# summons should be auto-cancelled after this many hours
+cancel_timer = 3
+
 # players are stored in a list of lists, top level is game number and second level is player names (sorted by join time)
 games = []
 
@@ -28,19 +32,25 @@ async def on_ready():
 	print('------')
 	await bot.change_presence(activity=discord.Game(name="q summon"))
 
+
+
 @bot.command(help="Summons a queue of gamers.")
 async def summon(ctx, num_games_summoned: int = 1, time: str = ""):
 	global game_summoned
 	global games
+	global time_summoned
 
 	if game_summoned == False:
 		if num_games_summoned != 0:
-			await ctx.send(mention_string + " Summoning for " + str(num_games_summoned) + " game(s), with the first game at (" + time + ").")
+			await ctx.send(mention_string + " Summoning for " + str(num_games_summoned) + " game(s), with the first game at " + time + ".")
 			game_summoned = True
 			# add that number of games to the games list, all empty
 			games = [[] for i in range(num_games_summoned)]
 			
 			await bot.change_presence(activity=discord.Game(name="0/5 slots filled"))
+			# set the time summoned
+			time_summoned = t.time()
+			check_timer.start(ctx)
 			# Should auto-join the summoner into the first game
 			await ctx.invoke(bot.get_command('join'), game_num=1)
 		else:
@@ -157,6 +167,18 @@ async def played(ctx):
 	else:
 		await ctx.send("Game is not summoned.")
 
+@tasks.loop(seconds=5.0)
+async def check_timer(ctx):
+	global game_summoned
+	global time_summoned
+
+	if game_summoned:
+		# check the current time against the time_summoned
+		time_since_summoned = t.time() - time_summoned
+		# if cancel_timer hours have passed since the summon
+		if time_since_summoned >= (1 * cancel_timer):
+			# cancel the summon
+			await ctx.invoke(bot.get_command('cancel'))
 
 
 bot.run(TOKEN)
