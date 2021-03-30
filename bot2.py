@@ -176,7 +176,7 @@ async def check_timer(ctx):
 		# check the current time against the time_summoned
 		time_since_summoned = t.time() - time_summoned
 		# if cancel_timer hours have passed since the summon
-		if time_since_summoned >= (1 * cancel_timer):
+		if time_since_summoned >= (3600 * cancel_timer):
 			# cancel the summon
 			await ctx.invoke(bot.get_command('cancel'))
 
